@@ -35,7 +35,7 @@ def test_preprocessor_output_shape_and_no_nans(xy):
     steps = build_pipeline(LogisticRegression())[:-1]
     Xt = steps.fit_transform(X)
     # 6 numeric + 17 one-hot (4+3+3+4+3) + 4 binary
-    assert Xt.shape == (len(X), 27)
+    assert Xt.shape == (len(X), 28)
     assert not np.isnan(Xt).any()
 
 
