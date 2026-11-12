@@ -58,3 +58,20 @@ VALID_CODES = {
     "major_vessels": {0, 1, 2, 3},
     "thal": {3, 6, 7},
 }
+
+# --- Training and tracking (Phase 3) ---
+MODELS_DIR = ROOT / "models"
+MODEL_FILE = MODELS_DIR / "model.joblib"
+MODEL_CARD_FILE = MODELS_DIR / "model_card.json"
+TRAINING_DIR = ROOT / "screenshots" / "training"
+
+# Absolute paths, so the MLflow UI finds the same store from any folder
+MLFLOW_TRACKING_URI = f"sqlite:///{ROOT / 'mlflow.db'}"
+MLFLOW_ARTIFACT_ROOT = (ROOT / "mlruns").as_uri()
+MLFLOW_EXPERIMENT = "heart-disease-optuna"
+REGISTERED_MODEL = "heart-risk-classifier"
+MODEL_ALIAS = "champion"
+
+CV_FOLDS = 5
+OPTUNA_TRIALS = 25
+F_BETA = 2  # recall counts twice as much as precision: a missed patient costs more

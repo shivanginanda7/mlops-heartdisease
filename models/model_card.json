@@ -1,0 +1,56 @@
+{
+  "model_name": "heart-risk-classifier",
+  "model_family": "xgboost",
+  "registry_version": 2,
+  "mlflow_run_id": "d5cb80c7ceab466294b0c8c24cb71ec7",
+  "decision_threshold": 0.18,
+  "engineered_features": true,
+  "best_params": {
+    "engineered": true,
+    "n_estimators": 375,
+    "max_depth": 5,
+    "learning_rate": 0.017448433137788627,
+    "subsample": 0.9998965226745584,
+    "colsample_bytree": 0.6734019851733618,
+    "min_child_weight": 4,
+    "reg_lambda": 2.445772648860484
+  },
+  "features": [
+    "age",
+    "resting_bp",
+    "cholesterol",
+    "max_hr",
+    "st_depression",
+    "chest_pain",
+    "rest_ecg",
+    "st_slope",
+    "major_vessels",
+    "thal",
+    "sex",
+    "fasting_sugar",
+    "exercise_angina"
+  ],
+  "cv_metrics": {
+    "cv_accuracy_mean": 0.7564,
+    "cv_accuracy_std": 0.0469,
+    "cv_precision_mean": 0.6789,
+    "cv_precision_std": 0.064,
+    "cv_recall_mean": 0.9277,
+    "cv_recall_std": 0.0618,
+    "cv_f1_mean": 0.7793,
+    "cv_f1_std": 0.0237,
+    "cv_f2_mean": 0.8604,
+    "cv_f2_std": 0.0285,
+    "cv_roc_auc_mean": 0.9155,
+    "cv_roc_auc_std": 0.0192
+  },
+  "test_metrics": {
+    "test_accuracy": 0.6721,
+    "test_precision": 0.5833,
+    "test_recall": 1.0,
+    "test_f1": 0.7368,
+    "test_f2": 0.875,
+    "test_roc_auc": 0.8701
+  },
+  "trained_at": "2026-11-12T15:26:15+00:00"
+}

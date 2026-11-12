@@ -1,0 +1,4 @@
+model,cv_roc_auc_mean,cv_roc_auc_std,cv_f2_mean,cv_recall_mean,cv_precision_mean,cv_accuracy_mean,threshold,test_roc_auc,test_recall,test_f2
+logreg_elasticnet,0.91,0.028,0.836,0.883,0.702,0.768,0.3,0.927,0.929,0.861
+svm_rbf,0.91,0.029,0.844,0.91,0.661,0.74,0.2,0.933,0.964,0.882
+xgboost,0.916,0.019,0.86,0.928,0.679,0.756,0.18,0.87,1.0,0.875
