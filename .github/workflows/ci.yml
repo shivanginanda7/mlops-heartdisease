@@ -1,0 +1,130 @@
+# CI pipeline: lint -> unit tests -> training run.
+# Each job only starts if the previous one passed, so any lint or test error
+# stops the pipeline (fail-fast) with the reason in the job log.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+  MPLBACKEND: Agg
+
+jobs:
+  lint:
+    name: 1. Lint (flake8)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install flake8
+        run: pip install "flake8>=7.0"
+
+      # Errors show as annotations on the exact file and line in GitHub
+      - name: Run flake8
+        run: >
+          flake8 src tests
+          --format='::error file=%(path)s,line=%(row)d,col=%(col)d::%(code)s %(text)s'
+
+  test:
+    name: 2. Unit tests (pytest)
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests with coverage
+        run: |
+          mkdir -p ci-reports
+          python -m pytest \
+            --cov=src --cov-report=term --cov-report=xml:ci-reports/coverage.xml \
+            --junitxml=ci-reports/junit.xml
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: ci-reports/
+          retention-days: 14
+
+  train:
+    name: 3. Data + training run
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download and clean data
+        run: python -m src.data.ingest
+
+      - name: EDA figures
+        run: python -m src.explore
+
+      # A short Optuna search keeps CI fast; the full search runs locally
+      - name: Train and track (5 trials per model)
+        run: |
+          set -o pipefail
+          mkdir -p ci-reports
+          python -m src.train --trials 5 2>&1 | tee ci-reports/train.log
+
+      - name: Smoke-test the saved model
+        run: python -m src.predict sample_patient.json
+
+      - name: Write job summary
+        run: |
+          python - <<'PY'
+          import csv, json, os
+          card = json.load(open("models/model_card.json"))
+          rows = list(csv.DictReader(open("screenshots/training/model_comparison.csv")))
+          cols = ["model", "cv_roc_auc_mean", "cv_f2_mean", "cv_recall_mean",
+                  "cv_precision_mean", "threshold"]
+          lines = ["## Training run", "",
+                   f"**Champion:** {card['model_family']} "
+                   f"(threshold {card['decision_threshold']})", "",
+                   "| " + " | ".join(cols) + " |",
+                   "|" + "---|" * len(cols)]
+          lines += ["| " + " | ".join(r[c] for c in cols) + " |" for r in rows]
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as fh:
+              fh.write("\n".join(lines) + "\n")
+          PY
+
+      - name: Upload model and training outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-and-metrics
+          path: |
+            models/model.joblib
+            models/model_card.json
+            data/processed/data_report.json
+            screenshots/training/
+            screenshots/eda/
+            ci-reports/train.log
+          retention-days: 14
