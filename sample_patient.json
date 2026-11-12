@@ -1,0 +1,15 @@
+{
+  "age": 58,
+  "sex": 1,
+  "chest_pain": 4,
+  "resting_bp": 140,
+  "cholesterol": 260,
+  "fasting_sugar": 0,
+  "rest_ecg": 2,
+  "max_hr": 132,
+  "exercise_angina": 1,
+  "st_depression": 1.8,
+  "st_slope": 2,
+  "major_vessels": 1,
+  "thal": 7
+}
