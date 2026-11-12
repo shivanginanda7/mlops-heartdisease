@@ -1,0 +1,15 @@
+{
+  "rows_raw": 303,
+  "duplicates_removed": 0,
+  "rows_clean": 303,
+  "missing_by_column": {
+    "major_vessels": 4,
+    "thal": 2
+  },
+  "invalid_codes_set_missing": {},
+  "class_counts": {
+    "no_disease": 164,
+    "disease": 139
+  },
+  "source": "ucimlrepo (id=45)"
+}
