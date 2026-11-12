@@ -145,6 +145,7 @@ def run(df: pd.DataFrame, out_dir: Path) -> list[Path]:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logging.getLogger("matplotlib").setLevel(logging.WARNING)
     df = pd.read_csv(s.CLEAN_FILE)
     files = run(df, s.EDA_DIR)
     log.info("EDA complete: %d files in %s", len(files), s.EDA_DIR.relative_to(s.ROOT))
