@@ -1,0 +1,22 @@
+# Keep the build context small: only src/, models/ and requirements-serve.txt are needed
+.git
+.github
+.venv
+venv
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+ci-reports/
+mlruns/
+mlartifacts/
+mlflow.db
+data/
+notebooks/
+screenshots/
+report/
+tests/
+k8s/
+monitoring/
+*.md
+.DS_Store
