@@ -1,0 +1,16 @@
+# Grafana picks up the Prometheus data source and the dashboard folder at startup
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: monitoring
+data:
+  prometheus.yaml: "apiVersion: 1\ndatasources:\n  - name: Prometheus\n    uid: prometheus\n    type: prometheus\n    access: proxy\n    url: http://prometheus.monitoring.svc:9090\n    isDefault: true\n"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-provider
+  namespace: monitoring
+data:
+  provider.yaml: "apiVersion: 1\nproviders:\n  - name: heart-api\n    folder: MLOps\n    type: file\n    options:\n      path: /var/lib/grafana/dashboards\n"
