@@ -1,0 +1,11 @@
+# During node maintenance, never take down more than one pod at a time
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: heart-api
+  namespace: heart-risk
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: heart-api

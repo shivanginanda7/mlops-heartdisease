@@ -1,0 +1,7 @@
+# Everything for the heart-risk API lives in its own namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: heart-risk
+  labels:
+    app.kubernetes.io/part-of: heart-risk
