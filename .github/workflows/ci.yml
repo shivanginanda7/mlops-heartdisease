@@ -128,3 +128,47 @@ jobs:
             screenshots/eda/
             ci-reports/train.log
           retention-days: 14
+
+  docker:
+    name: 4. Docker build + smoke test
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t heart-api:ci .
+
+      - name: Start container
+        run: docker run -d --name heart-api -p 8000:8000 heart-api:ci
+
+      # Wait for the Dockerfile HEALTHCHECK (model loaded) to report healthy
+      - name: Wait until healthy
+        run: |
+          for i in $(seq 1 30); do
+            status=$(docker inspect -f '{{.State.Health.Status}}' heart-api)
+            echo "attempt $i: $status"
+            [ "$status" = "healthy" ] && exit 0
+            sleep 2
+          done
+          echo "Container never became healthy"; docker logs heart-api; exit 1
+
+      - name: Smoke test /v1/predict
+        run: |
+          set -e
+          body=$(curl -sf -X POST localhost:8000/v1/predict \
+            -H "Content-Type: application/json" -d @sample_patient.json)
+          echo "$body"
+          echo "$body" | python -c "import json,sys; r=json.load(sys.stdin); \
+          assert r['prediction'] in (0, 1) and 0 <= r['probability_disease'] <= 1"
+          code=$(curl -s -o /dev/null -w "%{http_code}" -X POST localhost:8000/v1/predict \
+            -H "Content-Type: application/json" -d '{"age": 5}')
+          echo "invalid input returned HTTP $code"
+          [ "$code" = "422" ]
+
+      - name: Container logs
+        if: always()
+        run: docker logs heart-api
+
+      - name: Image size
+        run: docker image ls heart-api:ci
