@@ -1,0 +1,53 @@
+digraph G {
+  rankdir=LR; compound=true; newrank=true;
+  graph [fontname="Helvetica", fontsize=13, pad=0.3, nodesep=0.35, ranksep=0.55, bgcolor="white"];
+  node  [fontname="Helvetica", fontsize=11, shape=box, style="rounded,filled", fillcolor="#F4F6F8", color="#5A6B7B", penwidth=1.2];
+  edge  [fontname="Helvetica", fontsize=9, color="#5A6B7B", arrowsize=0.7];
+
+  subgraph cluster_dev {
+    label="1. Development (local Mac)"; style="rounded"; color="#9AA7B4";
+    uci  [label="UCI repository\n(ucimlrepo id 45)", shape=cylinder, fillcolor="#FFFFFF"];
+    ingest [label="src/data/ingest.py\nclean + binarise target"];
+    eda  [label="src/explore.py\nEDA figures"];
+    feat [label="src/features.py\nClinicalFeatures +\nColumnTransformer"];
+    train [label="src/train.py\nOptuna x 3 models\n5-fold CV, F2 threshold"];
+    mlflow [label="MLflow\n(SQLite tracking +\nModel Registry @champion)", fillcolor="#E8F1FB"];
+    model [label="models/\nmodel.joblib +\nmodel_card.json", shape=folder, fillcolor="#FFFFFF"];
+    uci -> ingest -> feat -> train;
+    ingest -> eda [style=dashed];
+    train -> mlflow [label="params, metrics,\nplots, model"];
+    train -> model;
+  }
+
+  subgraph cluster_ci {
+    label="2. CI (GitHub Actions, on every push)"; style="rounded"; color="#9AA7B4";
+    lint [label="1. flake8"];
+    test [label="2. pytest\n+ coverage"];
+    ci_train [label="3. ingest + train\n(5 trials) + artifacts"];
+    ci_docker [label="4. docker build\n+ smoke test"];
+    lint -> test; test -> ci_train; test -> ci_docker;
+  }
+
+  subgraph cluster_k8s {
+    label="3. Serving (Minikube)"; style="rounded"; color="#9AA7B4";
+    image [label="Docker image\nheart-api:1.0\n(2-stage, non-root)", fillcolor="#E8F1FB"];
+    ingress [label="NGINX Ingress\nheart-api.local"];
+    svc [label="Service\n(ClusterIP)"];
+    pods [label="Deployment: 2-5 pods\nFastAPI /v1/predict\nprobes /healthz /readyz\nHPA + PDB", fillcolor="#E6F4EA"];
+    ingress -> svc -> pods;
+  }
+
+  subgraph cluster_mon {
+    label="4. Monitoring"; style="rounded"; color="#9AA7B4";
+    prom [label="Prometheus\n(pod discovery,\n5 s scrape)"];
+    graf [label="Grafana dashboard\nrate, p95, errors,\noutcomes, drift", fillcolor="#FFF4E0"];
+    prom -> graf;
+  }
+
+  client [label="Client / load_test.py", shape=oval, fillcolor="#FFFFFF"];
+  model -> image [label="COPY"];
+  image -> pods [label="runs in", constraint=false];
+  client -> ingress [label="POST JSON"];
+  prom -> pods [label="scrapes /metrics"];
+  model -> lint [style=invis];
+}
